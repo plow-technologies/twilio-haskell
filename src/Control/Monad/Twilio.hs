@@ -130,7 +130,6 @@ instance Alternative m => Alternative (TwilioT m) where
 -}
 
 instance Monad m => Monad (TwilioT m) where
-  return a = TwilioT (return . const a)
   m >>= k = TwilioT $ \client -> do
     a <- getTwilioT m client
     getTwilioT (k a) client
@@ -169,6 +168,13 @@ data TwilioException
   | InvalidAuthToken   !Text
   | InvalidCredentials
   | UnexpectedResponse !(Response LBS.ByteString)
-  deriving (Show, Eq, Typeable)
+  deriving (Show, Typeable)
+
+instance Eq TwilioException where
+  InvalidSID a == InvalidSID b = a == b
+  InvalidAuthToken a == InvalidAuthToken b = a == b
+  InvalidCredentials == InvalidCredentials = True
+  UnexpectedResponse a == UnexpectedResponse b = show a == show b
+  _ == _ = False
 
 instance Exception TwilioException
